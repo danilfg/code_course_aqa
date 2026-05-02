@@ -1,0 +1,64 @@
+import requests
+from faker import Faker
+
+fake = Faker()
+
+BASE_URL = 'https://api.bank.easyitlab.tech'
+
+
+token_response = requests.post(
+    f"{BASE_URL}/auth/login",
+    json = {
+        'email': 'gravitel0nd@gmail.com',
+        'password': 'YyGRFC889cFJ'
+    },
+    headers={
+        'Content-Type': 'application/json'
+    }
+)
+assert token_response.status_code == 200, ""
+token_response_json = token_response.json()
+
+assert isinstance(token_response_json, dict)
+
+token = token_response_json.get('access_token')
+assert token,"token not found"
+
+HEADERS = {
+    "Authorization": f"Bearer {token}",
+    'Content-Type': 'application/json'
+}
+
+def create_employee():
+    print('1. Create employee')
+    body = {
+        'email': fake.email(),
+        'full_name': fake.name()
+    }
+
+    created_employee = requests.post(
+        f'{BASE_URL}/students/employees',
+        json=body,
+        headers=HEADERS
+    )
+    assert created_employee.status_code == 200
+    created_employee_json = created_employee.json()
+    employee_id = created_employee_json.get('id')
+    return employee_id
+
+def delete_employee(employee_id):
+    print('2. Delete employee')
+    deleted_employee = requests.delete(
+        f'{BASE_URL}/students/employees/{employee_id}',
+        headers=HEADERS
+    )
+    assert deleted_employee.status_code == 200
+
+def test_employee_lifecycle():
+    print('3. Start test')
+    employee_id = create_employee()
+    delete_employee(employee_id)
+    print('4. End test')
+
+
+test_employee_lifecycle()
