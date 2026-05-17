@@ -1,3 +1,4 @@
+import allure
 import requests
 import pytest
 
@@ -69,8 +70,8 @@ def created_employee(base_url, auth_headers):
         created_employee_json['email'],
         created_employee_json['full_name']
     )
-
-    requests.delete(
-        f"{base_url}/students/employees/{created_employee_json['id']}",
-        headers=auth_headers
-    )
+    with allure.step(f"Delete /students/employees/{created_employee_json['id']}"):
+        requests.delete(
+            f"{base_url}/students/employees/{created_employee_json['id']}",
+            headers=auth_headers
+        )
