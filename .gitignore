@@ -10,3 +10,5 @@ __pycache__/
 
 allure-results/
 allure-report/
+
+lesson_24_SQL_python/credentials.py
