@@ -22,6 +22,53 @@ def test_database_connection(db_cursor):
     assert database_info["database_name"] == POSTGRES_DB
     assert database_info["database_user"] == POSTGRES_USER
 
+def test_employee_and_client_saved_to_database(
+        db_cursor,
+        created_employee,
+        created_client
+):
+    db_cursor.execute(
+        """
+        SELECT
+            id,
+            email,
+            username,
+            is_active,
+            is_blocked
+        FROM employees
+        WHERE id = %s
+        """,
+        (created_employee["uuid"],)
+    )
+    employee_db = db_cursor.fetchone()
+
+    assert employee_db is not None
+    assert str(employee_db['id']) == created_employee['uuid']
+    assert employee_db['is_active'] is True
+    assert employee_db['is_blocked'] is False
+
+    db_cursor.execute(
+        """
+        SELECT
+            id,
+            created_by_employee_id,
+            first_name,
+            email
+        FROM clients
+        WHERE id = %s
+        """,
+        (created_client["id"],)
+    )
+    client_db = db_cursor.fetchone()
+
+    assert client_db is not None
+    assert str(client_db['id']) == created_client['id']
+    assert str(client_db['created_by_employee_id']) == created_employee['uuid']
+    assert str(client_db['email']) == created_client['email']
+
+    # print()
+    # print(employee_db)
+    # print(created_employee)
 
 # def test_test(db_cursor):
 #     db_cursor.execute(
@@ -48,6 +95,22 @@ def test_database_connection(db_cursor):
 #     db_cursor.execute(
 #         query,
 #         (status,)
+#     )
+#
+#     print()
+#     pprint(db_cursor.fetchall())
+
+
+# def test_test_3(db_cursor):
+#     status = 'BLOCKED'
+#     client_id = "asfqw3"
+#
+#     query = """
+#         UPDATE clients SET status = %s WHERE id = %s"""
+#
+#     db_cursor.execute(
+#         query,
+#         (status, client_id)
 #     )
 #
 #     print()

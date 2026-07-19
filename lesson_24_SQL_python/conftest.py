@@ -13,10 +13,18 @@ from credentials import (
     REMOTE_POSTGRES_PORT,
     LOCAL_BIND_ADDRESS,
     LOCAL_BIND_PORT,
-POSTGRES_DB,
-POSTGRES_USER,
-POSTGRES_PASSWORD
+    POSTGRES_DB,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD,
+    STUDENT_LOGIN,
+    STUDENT_PASSWORD, EMPLOYEE_EMAIL, EMPLOYEE_PASSWORD
 )
+from api_client import (
+    login, create_client, create_employee, delete_employee, delete_client
+)
+from faker import Faker
+
+fake = Faker()
 
 
 @pytest.fixture(scope="session")
@@ -61,3 +69,41 @@ def db_cursor(db_connection):
     yield cursor
     cursor.close()
 
+@pytest.fixture(scope="session")
+def student_token():
+    return login(STUDENT_LOGIN, STUDENT_PASSWORD, "CLIENT")
+
+@pytest.fixture
+def created_employee(student_token):
+    employee = create_employee(
+        student_token,
+        EMPLOYEE_EMAIL,
+        EMPLOYEE_PASSWORD
+    )
+
+    yield employee
+
+    delete_employee(student_token, employee['id'])
+
+@pytest.fixture
+def created_client(
+        student_token,
+        created_employee
+):
+    client_email = fake.email()
+    client_data = {
+        "student_username": client_email,
+        "first_name": fake.name(),
+        "last_name": fake.last_name(),
+        "phone": fake.phone_number(),
+        "email": client_email
+    }
+    client = create_client(
+        student_token,
+        created_employee['id'],
+        client_data
+    )
+
+    yield client
+
+    delete_client(student_token, client['id'])
